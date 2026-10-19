@@ -1,0 +1,13 @@
+# 人物表示例 —— 复制到 <lib>/characters.yaml 后修改（建议先用 bootstrap_chars.py 自动挖候选）
+# role 字段就是打在片段上的「人物标签」（如 男1/女1/男2/路人…）；role 留空则直接用 name 当标签。
+# aliases 写全正文里出现的各种称呼，匹配才不漏。
+characters:
+  - name: 陆诚
+    role: 男1
+    aliases: [小诚, 诚哥]
+  - name: 苏晚
+    role: 女1
+    aliases: [晚晚, 小晚]
+  - name: 王姐
+    role: 女配1
+    aliases: [王姨]

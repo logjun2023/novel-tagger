@@ -1,0 +1,14 @@
+# 示例：只要「场景」一个维度，且只有 对话 / 非对话 两个值
+#
+# 用法：把本目录下的 3 个 *.user.yaml 拷到你的素材库目录（如 taglib/），然后：
+#   python <skill>/scripts/segment.py --lib taglib --retag
+#
+# override: all → 完全覆盖标准维度库：没列出的维度（chars/plot/style/term）不再打标
+override: all
+dimensions:
+  scene:
+    label: 场景
+    values: [对话, 非对话]
+    method: [rule]
+    desc: 对话=引号占比达标；非对话=未达标
+llm_dimensions: []

@@ -1,0 +1,17 @@
+# 用户自定义词库示例 —— 复制到 <lib>/keywords.user.yaml 后按需修改（每个素材库一份）。
+# 默认合并规则：同维度同标签 → 关键词并集、阈值以本文件为准；新标签/新维度直接追加生效。
+# 覆盖规则（可选）：顶层写
+#   override: all            本文件完全替换标准关键词库（不需要的标签全部消失）
+#   override: [scene, plot]  只替换列出的维度（未重新给出的维度 = 删除）
+# 改完运行：python segment.py <小说文件> --lib <lib> --retag
+plot:
+  吃醋:
+    threshold: 2
+    keywords: [吃醋, 醋意, 酸溜溜, 别过脸, 不高兴]
+  误会:
+    threshold: 2
+    keywords: [误会, 误解, 听错, 以为他, 以为她]
+# 新增一个维度（会自动在所有片段上生效，需 --retag 重打）：
+# emotion:
+#   愤怒: {threshold: 2, keywords: [怒, 吼, 咬牙, 火大]}
+#   开心: {threshold: 2, keywords: [开心, 高兴, 笑了, 笑声]}

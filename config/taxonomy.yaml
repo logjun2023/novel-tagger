@@ -1,0 +1,39 @@
+# 标签维度定义（多维度、可扩展）
+# values 是「推荐值域」，用于提示与文档；实际打标由三部分驱动：
+#   1) rules.yaml  里的规则（对话检测、转场检测）
+#   2) keywords.yaml（标准词库）+ <lib>/keywords.user.yaml（用户词库）
+#   3) <lib>/characters.yaml（人物表）
+dimensions:
+  scene:
+    label: 场景
+    values: [对话, 战斗, 日常, 情感, 回忆, 环境, 转场, 其他]
+    method: [rule, keyword, llm]
+    desc: 对话=引号占比规则；战斗/日常/情感/回忆/环境=关键词；转场=片段以时间/转场词开头；其他=未分类兜底（默认含）。特征可多标签共存；值域里同时声明 xx 与 非xx → 互斥+未命中自动补全（有 非xx 时 其他 自然不命中，无需特殊处理）
+  chars:
+    label: 人物
+    values: []
+    method: [rule]
+    desc: 只有两类特征：人物ID（characters.yaml 的 role，如 男1/女2；名字/别名 + 代词就近指代：他/她/他们/她们按性别归属最近的提及，「我」= 叙述者需标 pov（true），仅引号外的叙述生效）+ 人物数量（<100 精确「N人」；≥100 按数量级 上百人/上千人/上万人，含「数百名观众」类文本估算；只统计总人数，不区分男女老幼）
+  plot:
+    label: 类型
+    values: [恋爱, 吵架, 打脸, 冲突, 搞笑, 温情, 虐心, 升级, 悬疑]
+    method: [keyword, llm]
+  style:
+    label: 描写
+    values: [动作描写, 心理描写, 环境描写, 外貌描写]
+    method: [keyword, llm]
+  term:
+    label: 关键词
+    values: []
+    method: [mine]
+    desc: 内置特征（默认开启、无需配置）：mine_terms.py 从本书自动提炼的词条（书内专有词/主题词），不预先指定；不算可选维度，关闭用 --no-terms
+llm_dimensions: [scene, plot]
+notes: |
+  场景（scene）是唯一拆分标准：切分只由章节/转场词/长度驱动；其余维度只是片段上的特征标签，不参与切分。
+  场景特征可多标签共存；两个例外：xx 与 非xx 成对声明 → 互斥+未命中自动补全；「其他」兜底未分类片段（默认值域已含；有 非xx 时自然不命中，无需特殊处理）。
+  新增维度：在 dimensions 下加一个键 + 在 keywords.yaml（或用户库）里加该维度的词典，即可生效。
+  关键词（term）是内置特征：默认开启、不需要选择与配置，维度问卷里不出现（关闭用 segment.py --no-terms）。
+  人物（chars）只有两类特征标签：人物ID（人物表 role + 名字/别名 + 代词就近指代，我/他/她…）+ 人物数量（<100 精确「N人」；≥100 按数量级；只统计总人数，不区分男女老幼）。
+  覆盖默认库：用户库（<lib>/taxonomy.user.yaml）顶层写 override: all（完全覆盖）或 override: [维度,...]（局部覆盖）；
+  用了 override 后：未列出的维度不再打标，列出的维度按 values 严格要求标签值。完整示例见 config/examples/only-dialogue/。
+  改完词库/规则后运行：python segment.py <小说文件> --lib <lib> --retag

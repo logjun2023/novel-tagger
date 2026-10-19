@@ -1,0 +1,9 @@
+# 示例：对话规则给出 对话 / 非对话 两个标签
+#
+# override: [dialogue] → 只覆盖 dialogue 这一节，其余规则（章节识别/片段切分）照常生效
+override: [dialogue]
+dialogue:
+  ratio_threshold: 0.38   # 自己调：调低 → 更多片段算「对话」
+  para_threshold: 0.5
+  label: 对话
+  negative_label: 非对话
