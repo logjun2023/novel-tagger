@@ -618,6 +618,42 @@ def print_lib_summary(rows, show_terms=False):
         print(f"自动词条：{len(terms)} 个（词面默认不回显；要看得加 --show-terms，或直接看 terms.json）")
 
 
+OTHER_SCENE_LABELS = {"其他", "其它"}
+SCENE_OTHER_WARN_RATIO = 0.10
+SCENE_OTHER_WARN_MIN_FRAGS = 5
+
+
+def scene_dim_enabled(gate) -> bool:
+    """scene 维度是否在当前覆盖配置下启用。"""
+    if not gate:
+        return True
+    if "scene" in (gate.get("drop") or []):
+        return False
+    only = gate.get("only")
+    return only is None or "scene" in only
+
+
+def print_scene_coverage(rows, lib, threshold=SCENE_OTHER_WARN_RATIO,
+                         min_frags=SCENE_OTHER_WARN_MIN_FRAGS):
+    """scene 未分类占比告警：只给统计，不回显原文/词面。"""
+    stats = defaultdict(lambda: [0, 0])
+    for r in rows:
+        book = r.get("book") or ""
+        stats[book][0] += 1
+        stags = set((r.get("tags") or {}).get("scene") or [])
+        if not (stags - OTHER_SCENE_LABELS):
+            stats[book][1] += 1
+    for book, (total, other) in sorted(stats.items()):
+        if not total or total < min_frags:
+            continue
+        ratio = other / total
+        if ratio < threshold:
+            continue
+        prefix = f"《{book}》 " if book else ""
+        print(f"[提示] {prefix}scene 未分类（其他/无标签）{other}/{total}（{round(ratio * 100)}%）"
+              f"→ 建议审计词表覆盖：python scripts/audit_scene.py --lib {lib}")
+
+
 def main():
     C.setup_console()
     ap = argparse.ArgumentParser(description="小说片段切分 + 本地多维打标（零 LLM）")
@@ -681,6 +717,8 @@ def main():
         total = C.build_db(lib)
         print(f"[retag] 已重打标签 {n} 个片段，库内共 {total} 个")
         print_lib_summary(all_rows, show_terms=args.show_terms)
+        if scene_dim_enabled(gate):
+            print_scene_coverage(all_rows, lib)
         return
 
     if not args.files:
@@ -729,6 +767,8 @@ def main():
         print("提示: 关键词提炼默认开启（书内专有词，零 LLM）；拆解新书时自动提炼，也可手动跑 mine_terms.py")
     print("提示: 语义补标（可选；批次含正文，敏感内容可能被模型安全过滤拦截——被拦跳过即可）→ python todo_llm.py --lib " + str(lib))
     print_lib_summary(all_rows, show_terms=args.show_terms)
+    if scene_dim_enabled(gate):
+        print_scene_coverage(all_rows, lib)
 
 
 if __name__ == "__main__":
